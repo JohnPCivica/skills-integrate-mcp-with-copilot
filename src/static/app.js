@@ -12,18 +12,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Clear loading message
       activitiesList.innerHTML = "";
+      activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
 
       // Populate activities list
       Object.entries(activities).forEach(([name, details]) => {
         const activityCard = document.createElement("div");
         activityCard.className = "activity-card";
 
-        const spotsLeft =
-          details.max_participants - details.participants.length;
+        const spotsLeft = details.max_participants - details.participant_count;
 
         // Create participants HTML with delete icons instead of bullet points
         const participantsHTML =
-          details.participants.length > 0
+          details.participant_count > 0
             ? `<div class="participants-section">
               <h5>Participants:</h5>
               <ul class="participants-list">
@@ -37,13 +37,28 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>`
             : `<p><em>No participants yet</em></p>`;
 
+        const waitlistHTML =
+          details.waitlist_count > 0
+            ? `<div class="participants-section">
+              <h5>Waitlist:</h5>
+              <ol class="waitlist-list">
+                ${details.waitlist
+                  .map((email) => `<li><span class="participant-email">${email}</span></li>`)
+                  .join("")}
+              </ol>
+            </div>`
+            : `<p><em>No students on waitlist</em></p>`;
+
         activityCard.innerHTML = `
           <h4>${name}</h4>
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          <p><strong>Enrolled:</strong> ${details.participant_count}/${details.max_participants}</p>
+          <p><strong>Waitlist:</strong> ${details.waitlist_count}</p>
           <div class="participants-container">
             ${participantsHTML}
+            ${waitlistHTML}
           </div>
         `;
 
@@ -130,8 +145,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await response.json();
 
       if (response.ok) {
-        messageDiv.textContent = result.message;
-        messageDiv.className = "success";
+        const messageByStatus = {
+          enrolled: result.message,
+          waitlisted:
+            result.message +
+            (result.position
+              ? ` (Position #${result.position} on waitlist)`
+              : ""),
+        };
+
+        messageDiv.textContent = messageByStatus[result.status] || result.message;
+        messageDiv.className = result.status === "waitlisted" ? "info" : "success";
         signupForm.reset();
 
         // Refresh activities list to show updated participants

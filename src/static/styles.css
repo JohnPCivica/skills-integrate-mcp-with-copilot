@@ -92,12 +92,20 @@ section h3 {
   padding-left: 5px;
 }
 
+.participants-section ol {
+  padding-left: 20px;
+}
+
 .participants-section ul li {
   padding: 4px 0;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.participants-section ol li {
+  padding: 4px 0;
 }
 
 /* Remove the bullet point pseudo-element */
